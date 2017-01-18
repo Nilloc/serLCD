@@ -5,6 +5,9 @@
 
  Created by Cody B. Null, September 9, 2011
  Modified by Jordan Hochenbaum, Dec 5, 2011. (Version 1.5)
+ Modified by Johan Korten, March 23, 2013. (Version 1.6)
+ Modified by Florentin Salomez, June 18, 2016 (Version 1.7)
+
 
  Version 1.4 - This version wrote specifically for 16x2
                Display.
@@ -16,7 +19,14 @@
                 to use the Standard SoftwareSerial library. Also, Arduino 1.0
                 support has been added. Backwards compatible with previous versions.
 
- 
+ Version 1.6 - Added support for the setType special command.
+				This will help using different LCD's (2x16, 2x20, 4x16, 4x20).  
+		      Added support for scrollLeft and scrollRight commands.
+
+Version 1.7 - Completed the setType special command. 
+ 				Now the setCursor function works correctly.
+ 				Added keywords.txt and library.properties file.
+
  Note -	This library requires NewSoftSerial library
  The latest version of NewSoftSerial library can 
  always be found at http://arduiniana.org. -> NO LONGER NECESSARY. See V1.5 notes above
@@ -159,7 +169,7 @@ void serLCD::setCursor(int row, int col){
 		{ 0x00, 0x40, 0x10, 0x50 },
 		{ 0x00, 0x40, 0x14, 0x54 }
 	};
-	if((row > 0 && row < 3) && (col > 0 && col < 17)){
+	if((row > 0 && row < _numlines+1) && (col > 0 && col < _numchars+1)){
            command(LCD_SETDDRAMADDR | ((col - 1) + row_offsets[_rowoffset][(row - 1)]));
 	}
 }
@@ -180,6 +190,43 @@ void serLCD::createChar(int location, uint8_t charmap[]){
 void serLCD::printCustomChar(int num){
 	write((num - 1));
 }
+
+// new in 1.6: sets the type of the LCD
+void serLCD::setType(int num){
+/*
+  3: 20 columns
+  4: 16 columns
+  5: 4 rows
+  6: 2 rows
+*/	
+	if (num==3){
+		_numchars = LCD_20CHAR;
+
+	}
+ 	if(num == 4){
+		_numchars = LCD_16CHAR;
+ 	}
+ 	if(num == 5){
+ 		_numlines = LCD_4LINE;
+ 		_rowoffset = 1;
+ 	}
+ 	if(num == 6){
+ 		_numlines = LCD_4LINE;
+ 		_rowoffset = 0;
+ 	}
+	specialCommand(num);
+}
+
+// new in 1.6: scrolls text to left with one position
+void serLCD::scrollLeft(){
+  command(0x18);
+}
+
+// new in 1.6: scrolls text to right with one position
+void serLCD::scrollRight(){
+	command(0x1C);
+}
+
 
 // PRIVATE FUNCTIONS
 
